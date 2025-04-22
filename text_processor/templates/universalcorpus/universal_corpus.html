@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Создание корпуса</h1>
+    <form method="post" id="corpus-form">
+        {% csrf_token %}
+        
+        <!-- Ручной рендеринг формы для большего контроля -->
+        <div class="form-group">
+            {{ form.process_type.label_tag }}
+            {{ form.process_type }}
+        </div>
+        
+        <!-- Поля, зависящие от выбора process_type -->
+        <div class="form-group" id="web-urls-group" style="display: none;">
+            {{ form.web_urls.label_tag }}
+            {{ form.web_urls }}
+        </div>
+        
+        <div class="form-group" id="folder-path-group" style="display: none;">
+            {{ form.folder_path.label_tag }}
+            {{ form.folder_path }}
+            <div style="margin-bottom: 10px;">
+                <button type="button" id="select-folder-button" class="btn btn-secondary">Выбрать папку</button>
+                <div id="upload-status" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+        
+        <div class="form-group" id="server-path-group" style="display: none;">
+            {{ form.server_path.label_tag }}
+            {{ form.server_path }}
+        </div>
+        
+        <!-- Поля, которые должны быть ВСЕГДА видны -->
+        <div class="form-group">
+            {{ form.type_outputcorpus.label_tag }}
+            {{ form.type_outputcorpus }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.language.label_tag }}
+            {{ form.language }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.outputcorpus_path.label_tag }}
+            {{ form.outputcorpus_path }}
+        </div>
+
+        <button type="submit" name="create_corpus_button" class="btn btn-primary">Создать корпус</button>
+    </form>
+
+    {% if output_path %}
+        <h2>Результат:</h2>
+        <p>Корпус создан по пути: <strong>{{ output_path }}</strong></p>
+    {% endif %}
+</div>
+
+<script>
+    document.getElementById("select-folder-button").addEventListener("click", function () {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.webkitdirectory = true;
+        input.multiple = true;
+        
+        input.addEventListener("change", async function() {
+            if (input.files.length > 0) {
+                const statusDiv = document.getElementById("upload-status");
+                statusDiv.innerHTML = `
+                    <div class="alert alert-info d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Идет загрузка ${input.files.length} файлов...
+                    </div>
+                `;
+                
+                const formData = new FormData();
+                for (let i = 0; i < input.files.length; i++) {
+                    formData.append("files", input.files[i]);
+                }
+                
+                try {
+                    const response = await fetch('/upload-folder-corpus/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    });
+    
+                    if (!response.headers.get('content-type')?.includes('application/json')) {
+                        const errorText = await response.text();
+                        throw new Error(`Ожидался JSON, получено: ${errorText.substring(0, 100)}...`);
+                    }
+    
+                    const data = await response.json();
+    
+                    if (!response.ok || data.status !== 'success') {
+                        throw new Error(data.message || 'Ошибка сервера');
+                    }
+    
+                    // Успешная загрузка
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill"></i> 
+                            ${data.message}<br>
+                            Путь на сервере: ${data.relative_path}
+                        </div>
+                    `;
+                    
+                    // Заполняем поля формы
+                    document.getElementById("id_folder_path").value = data.relative_path;
+                    document.getElementById("id_server_path").value = data.server_path;
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки:', error);
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            ${error.message}
+                        </div>
+                    `;
+                }
+            }
+        });
+        
+        input.click();
+    });
+    
+    function toggleFields() {
+        const processType = document.getElementById("id_process_type").value;
+        const folderPathGroup = document.getElementById("folder-path-group");
+        const serverPathGroup = document.getElementById("server-path-group");
+        const webUrlsGroup = document.getElementById("web-urls-group");
+
+        if (processType === "folder") {
+            folderPathGroup.style.display = "block";
+            serverPathGroup.style.display = "block";
+            webUrlsGroup.style.display = "none";
+        } else if (processType === "web") {
+            folderPathGroup.style.display = "none";
+            serverPathGroup.style.display = "none";
+            webUrlsGroup.style.display = "block";
+        }
+    }
+
+    // Инициализация при загрузке и при изменении выбора
+    document.addEventListener("DOMContentLoaded", toggleFields);
+    document.getElementById("id_process_type").addEventListener("change", toggleFields);
+</script>
+{% endblock %}

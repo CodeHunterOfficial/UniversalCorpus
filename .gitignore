@@ -1,0 +1,46 @@
+# Игнорировать виртуальное окружение
+venv/
+.env/
+.env.local
+.env.development
+.env.production
+
+# Игнорировать файлы базы данных
+*.sqlite3
+*.db
+*.sql
+
+# Игнорировать статические файлы (если они собираются автоматически)
+/static/
+/media/
+
+# Игнорировать кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Игнорировать файлы IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Игнорировать логи
+*.log
+
+# Игнорировать файлы зависимостей (если используете Poetry или Pipenv)
+Pipfile
+Pipfile.lock
+poetry.lock
+pyproject.toml
+
+# Игнорировать файлы миграций (если не хотите их включать в репозиторий)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Игнорировать секретные ключи и конфигурации
+secrets.py
+settings/local.py
+
+# Игнорировать собранные статические файлы (если используете collectstatic)
+/staticfiles/

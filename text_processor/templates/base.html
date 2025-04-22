@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base Page</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script defer src="{% static 'js/scripts.js' %}"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Overlay для затемнения фона -->
+        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Menu</h2>
+                <button onclick="toggleSidebar()">&#9776;</button>
+            </div>
+            <ul>
+                <li><a href="/universal-corpus">Создание нового корпуса</a></li>                                        
+            </ul>
+        </div>
+        <!-- Header -->
+        <header class="header">
+            <!-- Кнопка для открытия Sidebar (иконка) -->
+            <button class="open-sidebar-btn" id="openSidebarBtn" onclick="toggleSidebar()">&#9776;</button>
+            <!-- Основное меню (справа) -->
+            <ul class="main-menu-list">
+                <li><a href="#">📖 О нас</a></li>
+                <li><a href="#">📞 Контакты</a></li>
+                <li><a href="#">⚙ Настройки</a></li>
+            </ul>
+        </header>
+        <!-- Main Content и Right Sidebar -->
+        <div class="content-wrapper">
+            <!-- Main Content -->
+            <div class="main-content" id="mainContent">               
+                {% block content %}{% endblock %}                
+            </div>
+            <!-- Правый блок для рекламы/новостей -->
+            <div class="right-sidebar">
+                <h2>News</h2>
+                <p>Latest updates go here.</p>
+            </div>
+        </div>
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 MyProject. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
